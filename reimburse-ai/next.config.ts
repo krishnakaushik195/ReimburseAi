@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // Loaded with native require: PGlite reads its WASM/data files and tesseract.js spawns worker threads from node_modules.
   serverExternalPackages: ["@electric-sql/pglite", "tesseract.js"],
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/tesseract.js/src/**/*", "./node_modules/tesseract.js-core/**/*"],
+  },
   experimental: {
     serverActions: {
       // Receipts are uploaded through a Server Action (10 MB limit + multipart overhead).
