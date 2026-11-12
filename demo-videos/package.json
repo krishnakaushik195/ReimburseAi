@@ -1,0 +1,12 @@
+{
+  "name": "reimburse-ai-demo-videos",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "record": "node record-demos.mjs"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "playwright-core": "^1.65.0"
+  }
+}

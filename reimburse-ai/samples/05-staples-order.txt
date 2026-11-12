@@ -1,0 +1,14 @@
+From: Staples <orders@staples.example>
+Subject: Your Staples order STP-55120 has shipped
+
+Staples
+Order #STP-55120
+Order date: Nov 6, 2026
+
+Printer paper, 10 reams        24.99
+Toner cartridge (black)        54.99
+Subtotal                       79.98
+Tax                             6.42
+Total                         $86.40
+
+Ship to: Acme Robotics, 200 Innovation Dr, Boston MA
