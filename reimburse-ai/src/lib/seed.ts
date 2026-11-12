@@ -28,10 +28,46 @@ async function insertId(tx: Transaction, sql: string, params: unknown[]): Promis
   return res.rows[0].id;
 }
 
+function writeDemoCredentials(password: string): void {
+  const file = path.join(DATA_DIR, "demo-credentials.txt");
+  const lines = [
+    "ReimburseAI demo accounts (all share one password)",
+    `Password: ${password}`,
+    "",
+    ...DEMO_ACCOUNTS.map((a) => `${a.email.padEnd(26)} ${a.role.padEnd(9)} ${a.startup ?? a.tenant}`),
+  ];
+  fs.writeFileSync(file, lines.join("\n") + "\n", { mode: 0o600 });
+}
+
+function readStoredDemoPassword(): string | null {
+  try {
+    const text = fs.readFileSync(path.join(DATA_DIR, "demo-credentials.txt"), "utf8");
+    return text.match(/^Password:\s*(.+)$/m)?.[1]?.trim() ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** When DEMO_PASSWORD changes, rehash demo users so the login page password stays correct. */
+async function syncDemoPasswordIfNeeded(pg: PGlite): Promise<void> {
+  const password = process.env.DEMO_PASSWORD?.trim();
+  if (!password || readStoredDemoPassword() === password) return;
+
+  const hash = await hashPassword(password);
+  for (const account of DEMO_ACCOUNTS) {
+    await pg.query("UPDATE users SET password_hash = $1 WHERE email = $2", [hash, account.email]);
+  }
+  writeDemoCredentials(password);
+  console.log("[seed] Demo passwords synced from DEMO_PASSWORD.");
+}
+
 /** Creates two demo tenants (an incubator and a hospital lab) on first start. */
 export async function seedDemoData(pg: PGlite): Promise<void> {
   const existing = await pg.query<{ count: number }>("SELECT count(*)::int AS count FROM tenants");
-  if (existing.rows[0].count > 0) return;
+  if (existing.rows[0].count > 0) {
+    await syncDemoPasswordIfNeeded(pg);
+    return;
+  }
 
   const password = process.env.DEMO_PASSWORD || randomBytes(9).toString("base64url");
 
@@ -96,15 +132,8 @@ export async function seedDemoData(pg: PGlite): Promise<void> {
     }
   });
 
-  const file = path.join(DATA_DIR, "demo-credentials.txt");
-  const lines = [
-    "ReimburseAI demo accounts (all share one password)",
-    `Password: ${password}`,
-    "",
-    ...DEMO_ACCOUNTS.map((a) => `${a.email.padEnd(26)} ${a.role.padEnd(9)} ${a.startup ?? a.tenant}`),
-  ];
-  fs.writeFileSync(file, lines.join("\n") + "\n", { mode: 0o600 });
+  writeDemoCredentials(password);
   console.log(
-    `[seed] Demo tenants created. ${process.env.DEMO_PASSWORD ? "Password from DEMO_PASSWORD." : `Login details: ${file}`}`,
+    `[seed] Demo tenants created. ${process.env.DEMO_PASSWORD ? "Password from DEMO_PASSWORD." : `Login details: ${path.join(DATA_DIR, "demo-credentials.txt")}`}`,
   );
 }

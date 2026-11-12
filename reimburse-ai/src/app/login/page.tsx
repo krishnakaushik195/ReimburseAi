@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { getDb } from "@/lib/db";
-import { DEMO_ACCOUNTS } from "@/lib/demo-accounts";
+import { DEMO_ACCOUNTS, getDemoPassword } from "@/lib/demo-accounts";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -17,6 +17,8 @@ async function PrepareDatabase() {
 }
 
 export default function LoginPage() {
+  const demoPassword = getDemoPassword();
+
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
       <Suspense fallback={null}>
@@ -54,9 +56,17 @@ export default function LoginPage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-3 text-xs text-slate-500">
-              The shared password is <code>DEMO_PASSWORD</code> from your environment, or the one generated in <code>.data/demo-credentials.txt</code> on first start.
-            </p>
+            {demoPassword ? (
+              <div className="mt-4 rounded-lg border-2 border-amber-400 bg-amber-50 px-3 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Shared password</p>
+                <p className="mt-1 select-all font-mono text-lg font-bold tracking-wide text-amber-950">{demoPassword}</p>
+                <p className="mt-1 text-xs text-amber-800/80">Same password for every demo account above.</p>
+              </div>
+            ) : (
+              <p className="mt-3 text-xs text-slate-500">
+                The shared password is in <code>DEMO_PASSWORD</code> or <code>.data/demo-credentials.txt</code> after first start.
+              </p>
+            )}
           </div>
         </div>
       </section>

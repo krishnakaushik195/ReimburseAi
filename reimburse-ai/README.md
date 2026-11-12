@@ -87,6 +87,7 @@ Settings live in `.env` (template: `.env.example`). All are optional; restart `n
 | --- | --- |
 | `DEMO_PASSWORD` | Password for the seeded accounts (first start only) |
 | `SESSION_SECRET` | 32+ character cookie-signing secret; generated into `.data/` if missing |
+| `REIMBURSE_DATA_DIR` | Writable directory for PGlite, uploads, and local secrets; defaults to `.data/` locally and `/tmp/reimburse-ai` on Vercel |
 | `OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_BASE_URL` | AI extraction and risk explanations via OpenAI |
 | `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_DEPLOYMENT`, `AZURE_OPENAI_API_VERSION` | Same via Azure OpenAI (takes precedence) |
 | `AZURE_OPENAI_MODEL` | Model name shown in the UI for the Azure deployment |
@@ -119,3 +120,10 @@ Postgres in `.data/pg`) · tesseract.js · unpdf · OpenAI SDK · Zod · PayPal 
 
 Hosted Postgres (the SQL is plain Postgres), object storage for receipts, a job queue for the pipeline, SSO, pgvector embeddings for
 semantic duplicate detection, email notifications, and multi-currency conversion.
+
+## Serverless deployments
+
+On Vercel, the app uses `/tmp/reimburse-ai` automatically because the deployed filesystem is read-only. This prevents startup failures,
+but the directory is ephemeral and is not shared between serverless instances. Set `DEMO_PASSWORD` and `SESSION_SECRET` in the deployment
+environment for a stable demo password and sessions. For production, use persistent Postgres and object storage instead of the embedded
+database and local upload directory.

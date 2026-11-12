@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+import { DATA_DIR } from "./paths";
 import type { Role } from "./types";
 
 export interface DemoAccount {
@@ -16,3 +19,16 @@ export const DEMO_ACCOUNTS: DemoAccount[] = [
   { email: "researcher@helix.test", name: "Sam Rivera", role: "claimant", tenant: "helix", startup: "Cardio Research Unit" },
   { email: "admin@helix.test", name: "Hana Lee", role: "admin", tenant: "helix" },
 ];
+
+/** Shared demo login password: DEMO_PASSWORD env, else the value written on first seed. */
+export function getDemoPassword(): string | null {
+  const fromEnv = process.env.DEMO_PASSWORD?.trim();
+  if (fromEnv) return fromEnv;
+  try {
+    const text = fs.readFileSync(path.join(DATA_DIR, "demo-credentials.txt"), "utf8");
+    const match = text.match(/^Password:\s*(.+)$/m);
+    return match?.[1]?.trim() || null;
+  } catch {
+    return null;
+  }
+}
